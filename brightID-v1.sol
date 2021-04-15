@@ -3,24 +3,15 @@
 pragma solidity ^0.8.0;
 
 
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
-// import "./IBrightID.sol";
+import "./Ownable.sol";
+import "./IERC20.sol";
 
-
-//-------------------Interfaces-------------------------------
-interface IBrightID {
-    // event Verified(address indexed addr); // Disabled because solidity 0.8.0 threw a duplication notice 
-    function isVerified(address addr) external view returns (bool);
-    function history(address addr) external view returns (address);
-}
 
 
 //-------------------Contracts-------------------------------
-contract BrightID is Ownable, IBrightID {
+contract BrightID is Ownable {
     
     //-------------------Storage-----------------------------    
-    IBrightID private nodeID; // address of brightID node  
     IERC20 public verifierToken; // address of verification Token  
     bytes32 public app; //Regiested BrightID app name 
     
@@ -38,7 +29,7 @@ contract BrightID is Ownable, IBrightID {
     
     //-------------------Mappings---------------------------
     mapping(address => Verification) public verifications;
-    mapping(address => address) override public history;
+    mapping(address => address) public history;
     
     //-------------------Contructor-------------------------
     /**
@@ -50,14 +41,9 @@ contract BrightID is Ownable, IBrightID {
         app = _app; // TODO Fails to build when insterted "rarecoin" on deploy with remix. 
     }
     
-    // constructor(IERC20 _verifierToken, bytes32 _app, IBrightID _brightIDcontract) {
-    //     verifierToken = _verifierToken;
-    //     app = _app;
-    //     nodeID = _brightIDcontract;
-    // }
 
     // emits a sponsor event for brightID nodes // TODO Qeustion, is this correct? 
-    function sponsor(address addr) public onlyOwner {
+    function sponsor(address addr) public {
         emit Sponsor(addr);
     }
 
@@ -114,7 +100,7 @@ contract BrightID is Ownable, IBrightID {
      * @notice Check an address is verified or not
      * @param addr The context id used for verifying users
      */
-    function isVerified(address addr) override external view returns (bool) {
+    function isVerified(address addr) external view returns (bool) {
         return verifications[addr].isVerified;
     }
 }
