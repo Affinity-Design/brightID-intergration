@@ -6,16 +6,12 @@ pragma solidity ^0.8.0;
 import "./Ownable.sol";
 import "./IERC20.sol";
 
-interface Fountain {
-    function cycleCount() external view returns (uint16);
-}
 
 //-------------------Contracts-------------------------------
 contract BrightID is Ownable {
     
     //-------------------Storage-----------------------------    
     IERC20 public verifierToken; // address of verification Token  
-    Fountain public claimsPool; // address of brightID node  
     bytes32 public app; //Regiested BrightID app name 
     
     struct Verification {
@@ -23,14 +19,6 @@ contract BrightID is Ownable {
         bool isVerified;
     }
 
-    /**
-     * @var timesChanged verifier token
-     * @var lastCycle BrightID app used for verifying users
-     */
-    struct Info {
-        uint8 timesChanged;
-        uint16 lastCycle; 
-    }
     
     
     //-------------------Events-----------------------------
@@ -43,7 +31,6 @@ contract BrightID is Ownable {
     //-------------------Mappings---------------------------
     mapping(address => Verification) public verifications;
     mapping(address => address) public history;
-    mapping(address => Info) public user;
     
  
     
@@ -53,10 +40,9 @@ contract BrightID is Ownable {
      * @param _app BrightID app used for verifying users
      * @param _claimAddress claimPool contract
      */
-    constructor(IERC20 _verifierToken, bytes32 _app, Fountain _claimAddress) {
+    constructor(IERC20 _verifierToken, bytes32 _app) {
         verifierToken = _verifierToken;
         app = _app; 
-        claimsPool = _claimAddress; 
     }
     
 
