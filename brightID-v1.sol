@@ -94,7 +94,7 @@ contract BrightID is Ownable {
         verifications[addrs[0]].time = timestamp;
         verifications[addrs[0]].isVerified = true;
         for(uint i = 1; i < addrs.length; i++) {
-            require(verifications[addrs[0]].time < block.timestamp - 172800, "Address changed too recently. Wait for next registration period.");
+            require(verifications[addrs[i]].time < block.timestamp - 172800, "Address changed too recently. Wait for next registration period.");
             verifications[addrs[i]].time = timestamp;
             verifications[addrs[i]].isVerified = false;
             history[addrs[i - 1]] = addrs[i];
