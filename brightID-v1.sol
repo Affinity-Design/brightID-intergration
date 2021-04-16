@@ -6,13 +6,16 @@ pragma solidity ^0.8.0;
 import "./Ownable.sol";
 import "./IERC20.sol";
 
-
+interface Fountain {
+    function cycleCount() external view returns (uint16);
+}
 
 //-------------------Contracts-------------------------------
 contract BrightID is Ownable {
     
     //-------------------Storage-----------------------------    
     IERC20 public verifierToken; // address of verification Token  
+    Fountain public claimsPool; // address of brightID node  
     bytes32 public app; //Regiested BrightID app name 
     
     struct Verification {
@@ -20,6 +23,16 @@ contract BrightID is Ownable {
         bool isVerified;
     }
 
+    /**
+     * @var timesChanged verifier token
+     * @var lastCycle BrightID app used for verifying users
+     */
+    struct Info {
+        uint8 timesChanged;
+        uint16 lastCycle; 
+    }
+    
+    
     //-------------------Events-----------------------------
     event Verified(address indexed addr);
     event VerifierTokenSet(IERC20 verifierToken);
@@ -30,15 +43,20 @@ contract BrightID is Ownable {
     //-------------------Mappings---------------------------
     mapping(address => Verification) public verifications;
     mapping(address => address) public history;
+    mapping(address => Info) public user;
+    
+ 
     
     //-------------------Contructor-------------------------
     /**
      * @param _verifierToken verifier token
      * @param _app BrightID app used for verifying users
+     * @param _claimAddress claimPool contract
      */
-    constructor(IERC20 _verifierToken, bytes32 _app) {
+    constructor(IERC20 _verifierToken, bytes32 _app, Fountain _claimAddress) {
         verifierToken = _verifierToken;
         app = _app; 
+        claimsPool = _claimAddress; 
     }
     
 
@@ -81,7 +99,8 @@ contract BrightID is Ownable {
         bytes32 s
     ) public {
         require(verifications[addrs[0]].time < timestamp, "newer verification registered before");
-
+        require (timestamp > block.timestamp - 86400, "Verification too old. Try linking again.");
+        
         bytes32 message = keccak256(abi.encodePacked(app, addrs, timestamp));
         address signer = ecrecover(message, v, r, s);
         require(verifierToken.balanceOf(signer) > 0, "not authorized");
@@ -89,6 +108,7 @@ contract BrightID is Ownable {
         verifications[addrs[0]].time = timestamp;
         verifications[addrs[0]].isVerified = true;
         for(uint i = 1; i < addrs.length; i++) {
+            require(verifications[addrs[0]].time < block.timestamp - 172800, "Address changed too recently. Wait for next registration period.");
             verifications[addrs[i]].time = timestamp;
             verifications[addrs[i]].isVerified = false;
             history[addrs[i - 1]] = addrs[i];
@@ -102,5 +122,6 @@ contract BrightID is Ownable {
      */
     function isVerified(address addr) external view returns (bool) {
         return verifications[addr].isVerified;
+
     }
 }
