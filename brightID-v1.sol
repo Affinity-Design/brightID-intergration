@@ -86,7 +86,7 @@ contract BrightID is Ownable {
         bytes32 s
     ) public {
         require(verifications[addrs[0]].time < timestamp, "newer verification registered before");
-        require (timestamp > block.timestamp - 86400, "Verification too old. Try linking again.");
+        require (timestamp > block.timestamp - REGISTRATION_PERIOD, "Verification too old. Try linking again.");
         
         bytes32 message = keccak256(abi.encodePacked(app, addrs, timestamp));
         address signer = ecrecover(message, v, r, s);
@@ -95,7 +95,7 @@ contract BrightID is Ownable {
         verifications[addrs[0]].time = timestamp;
         verifications[addrs[0]].isVerified = true;
         for(uint i = 1; i < addrs.length; i++) {
-            require(verifications[addrs[i]].time < block.timestamp - 172800, "Address changed too recently. Wait for next registration period.");
+            require(verifications[addrs[i]].time < block.timestamp - REGISTRATION_PERIOD * 2, "Address changed too recently. Wait for next registration period.");
             verifications[addrs[i]].time = timestamp;
             verifications[addrs[i]].isVerified = false;
             history[addrs[i - 1]] = addrs[i];
